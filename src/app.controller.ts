@@ -5,6 +5,41 @@ import { Request, Response } from '@nestjs/common';
 import { CustomException } from './common/exceptions';
 import { AggregationTypes, RefExceptions, StatusCodes } from './common/values';
 import { GetLastMeasurementsAggregationParams, GetMeasurementsAggregationParams, GetMeasurementsAggregationQuery, GetUniqueSensorParams } from './common/validation';
+import { ApiExtraModels, ApiProperty, ApiResponse, getSchemaPath } from '@nestjs/swagger';
+
+class MeasurementResponseDto {
+  @ApiProperty() id: number;
+  @ApiProperty() sensor_id: string;
+  @ApiProperty() latitude: number;
+  @ApiProperty() longitude: number;
+  @ApiProperty() co: number;
+  @ApiProperty() co2: number;
+  @ApiProperty() no2: number;
+  @ApiProperty() o3: number;
+  @ApiProperty() pm10: number;
+  @ApiProperty() pm25: number;
+  @ApiProperty() rh: number;
+  @ApiProperty() extT: number;
+  @ApiProperty() intT: number;
+  @ApiProperty() voc: number;
+  @ApiProperty() created_at: Date;
+  @ApiProperty() updated_at: Date
+}[];
+
+class LastMeasurementAggregationResponseDto {
+  @ApiProperty() interval: number;
+  @ApiProperty() results: MeasurementResponseDto[];
+  @ApiProperty() base_date: Date;
+  @ApiProperty() aggr_type: AggregationTypes
+};
+
+class SensorResponseDto {
+  @ApiProperty() id: string;
+  @ApiProperty() latitude: number;
+  @ApiProperty() longitude: number;
+  @ApiProperty() created_at: Date;
+  @ApiProperty() updated_at: Date
+};
 
 @Controller()
 export class AppController {
@@ -15,7 +50,21 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  @ApiExtraModels(SensorResponseDto)
   @Get("/sensors")
+  @ApiResponse({ 
+    status: StatusCodes.OK, 
+    description: 'OK', 
+    schema: {
+      type: "array",
+      items: {
+        $ref: getSchemaPath(SensorResponseDto)
+      }
+    }
+  })
+  @ApiResponse({ status: StatusCodes.INTERNAL_SERVER_ERROR, description: 'Internal server error'})
+  @ApiResponse({ status: StatusCodes.BAD_REQUEST, description: 'Bad request'})
+  @ApiResponse({ status: StatusCodes.RESOURCE_NOT_FOUND, description: 'Resource not found'})
   async getAllSensors(): Promise<SensorResponseDto[]> {
     const db = this.dbService.getDb();
     const sensors = await db.sensor.findMany({
@@ -26,7 +75,19 @@ export class AppController {
     return sensors;
   }
 
+  @ApiExtraModels(SensorResponseDto)
   @Get("/sensors/:sensor_id")
+  @ApiResponse({ 
+    status: StatusCodes.OK, 
+    description: 'OK', 
+    schema: {
+      $ref: getSchemaPath(SensorResponseDto)
+    }
+  })
+  @ApiResponse({ status: StatusCodes.OK, description: 'OK'})
+  @ApiResponse({ status: StatusCodes.INTERNAL_SERVER_ERROR, description: 'Internal server error'})
+  @ApiResponse({ status: StatusCodes.BAD_REQUEST, description: 'Bad request'})
+  @ApiResponse({ status: StatusCodes.RESOURCE_NOT_FOUND, description: 'Resource not found'})
   async getSensorById(@Param() params: GetUniqueSensorParams): Promise<SensorResponseDto>{
     const db = this.dbService.getDb();
     const sensor = await db.sensor.findUnique({
@@ -40,8 +101,23 @@ export class AppController {
     return sensor;
   }
 
+  @ApiExtraModels(MeasurementResponseDto)
   @Get("/sensors/:sensor_id/measurements")
-  async getSensorMesurementsByAggregation(@Param() params: GetMeasurementsAggregationParams, @Query() query: GetMeasurementsAggregationQuery): Promise<MeasurementsAggregationResponseDto>{
+  @ApiResponse({ 
+    status: StatusCodes.OK, 
+    description: 'OK', 
+    schema: {
+      type: "array",
+      items: {
+        $ref: getSchemaPath(MeasurementResponseDto)
+      }
+    }
+  })
+  @ApiResponse({ status: StatusCodes.OK, description: 'OK'})
+  @ApiResponse({ status: StatusCodes.INTERNAL_SERVER_ERROR, description: 'Internal server error'})
+  @ApiResponse({ status: StatusCodes.BAD_REQUEST, description: 'Bad request'})
+  @ApiResponse({ status: StatusCodes.RESOURCE_NOT_FOUND, description: 'Resource not found'})
+  async getSensorMesurementsByAggregation(@Param() params: GetMeasurementsAggregationParams, @Query() query: GetMeasurementsAggregationQuery): Promise<MeasurementResponseDto[]>{
     const db = this.dbService.getDb();
     const baseDate = new Date(query.base_date.toString());
     const aggrType = query.aggr_type;
@@ -84,7 +160,19 @@ export class AppController {
     return filteredMeasurements;
   }
 
+  @ApiExtraModels(LastMeasurementAggregationResponseDto)
   @Get("/sensors/:sensor_id/measurements/last")
+  @ApiResponse({ 
+    status: StatusCodes.OK, 
+    description: 'OK', 
+    schema: {
+      $ref: getSchemaPath(LastMeasurementAggregationResponseDto)
+    }
+  })
+  @ApiResponse({ status: StatusCodes.OK, description: 'OK'})
+  @ApiResponse({ status: StatusCodes.INTERNAL_SERVER_ERROR, description: 'Internal server error'})
+  @ApiResponse({ status: StatusCodes.BAD_REQUEST, description: 'Bad request'})
+  @ApiResponse({ status: StatusCodes.RESOURCE_NOT_FOUND, description: 'Resource not found'})
   async getLastSensorMesurementsDailyAggregation(@Param() params: GetLastMeasurementsAggregationParams): Promise<LastMeasurementAggregationResponseDto>{
     const interval = 60;
     const db = this.dbService.getDb();
@@ -137,37 +225,3 @@ export class AppController {
     };
   }
 }
-
-type MeasurementsAggregationResponseDto = {
-  id: number,
-  sensor_id: string,
-  latitude: number,
-  longitude: number,
-  co: number,
-  co2: number,
-  no2: number,
-  o3: number,
-  pm10: number,
-  pm25: number,
-  rh: number,
-  extT: number,
-  intT: number,
-  voc: number,
-  created_at: Date,
-  updated_at: Date
-}[];
-
-type SensorResponseDto = {
-  id: string,
-  latitude: number,
-  longitude: number,
-  created_at: Date,
-  updated_at: Date
-};
-
-type LastMeasurementAggregationResponseDto = {
-  interval: number,
-  results: MeasurementsAggregationResponseDto,
-  base_date: Date,
-  aggr_type: AggregationTypes
-};
