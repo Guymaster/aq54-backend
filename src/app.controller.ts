@@ -161,12 +161,30 @@ export class AppController {
   }
 
   @ApiExtraModels(LastMeasurementAggregationResponseDto)
+  @ApiExtraModels(MeasurementResponseDto)
   @Get("/sensors/:sensor_id/measurements/last")
   @ApiResponse({ 
     status: StatusCodes.OK, 
     description: 'OK', 
     schema: {
-      $ref: getSchemaPath(LastMeasurementAggregationResponseDto)
+      type: "object",
+      properties: {
+        interval: {
+          type: "integer"
+        },
+        results: {
+          $ref: getSchemaPath(MeasurementResponseDto)
+        },
+        base_date: {
+          type: "string",
+          format: "date-time",
+          example: "2017-07-21T17:32:28Z"
+        },
+        aggr_type: {
+          type: "enum",
+          enum: ["HOURLY", "DAILY"]
+        }
+      }
     }
   })
   @ApiResponse({ status: StatusCodes.OK, description: 'OK'})
