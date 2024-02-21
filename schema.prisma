@@ -1,0 +1,41 @@
+datasource db {
+  url      = env("DB_URL")
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Sensor {
+  @@map("sensor")
+  id String @id
+  latitude Float
+  longitude Float
+  @@unique([latitude, longitude])
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  measurements Measurement[]
+}
+
+model Measurement {
+  @@map("measurement")
+  id Int @id @default(autoincrement())
+  sensor_id String
+  sensor Sensor @relation(fields: [sensor_id], references: [id])
+  latitude Float
+  longitude Float
+  co Float?
+  co2 Float?
+  no2 Float?
+  o3 Float?
+  pm10 Float?
+  pm25 Float?
+  rh Float?
+  extT Float?
+  intT Float?
+  voc Float?
+  created_at DateTime @default(now())
+  @@unique([latitude, longitude, created_at])
+  updated_at DateTime @default(now())
+}
