@@ -10,9 +10,9 @@ export const StatusCodes = {
     SERVICE_UNAVAILABALE: 503,
 };
 
-export const AggregationTypes = {
-    HOURLY: "HOURLY",
-    DAILY: "DAILY"
+export enum AggregationTypes {
+    HOURLY = "HOURLY",
+    DAILY = "DAILY"
 };
 
 export const ReqExceptions = {

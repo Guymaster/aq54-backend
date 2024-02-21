@@ -4,6 +4,7 @@ import { DbService } from './db.service';
 import { Request, Response } from '@nestjs/common';
 import { CustomException } from './common/exceptions';
 import { AggregationTypes, RefExceptions, StatusCodes } from './common/values';
+import { GetLastMeasurementsAggregationParams, GetMeasurementsAggregationParams, GetMeasurementsAggregationQuery, GetUniqueSensorParams } from './common/validation';
 
 @Controller()
 export class AppController {
@@ -26,11 +27,11 @@ export class AppController {
   }
 
   @Get("/sensors/:sensor_id")
-  async getSensorById(@Param('sensor_id') sensor_id: string): Promise<object>{
+  async getSensorById(@Param() params: GetUniqueSensorParams): Promise<object>{
     const db = this.dbService.getDb();
     const sensor = await db.sensor.findUnique({
         where: {
-            id: sensor_id
+            id: params.sensor_id
         }
     });
     if(!sensor){
@@ -40,10 +41,10 @@ export class AppController {
   }
 
   @Get("/sensors/:sensor_id/measurements")
-  async getSensorMesurementsByAggregation(@Param('sensor_id') sensor_id: string, @Query('base_date') base_date: string, @Query('base_date') aggr_type: "HOURLY" | "DAILY"): Promise<object[]>{
+  async getSensorMesurementsByAggregation(@Param() params: GetMeasurementsAggregationParams, @Query() query: GetMeasurementsAggregationQuery): Promise<object[]>{
     const db = this.dbService.getDb();
-    const baseDate = new Date(base_date.toString());
-    const aggrType = aggr_type;
+    const baseDate = new Date(query.base_date.toString());
+    const aggrType = query.aggr_type;
     let startDate = baseDate;
     startDate.setMinutes(0);
     startDate.setSeconds(0);
@@ -56,7 +57,7 @@ export class AppController {
     }
     let measurements = await db.measurement.findMany({
         where: {
-            sensor_id: sensor_id.toString(),
+            sensor_id: params.sensor_id,
             created_at: {
                 gte: startDate,
                 lte: endDate
@@ -79,11 +80,11 @@ export class AppController {
   }
 
   @Get("/sensors/:sensor_id/measurements/last")
-  async getLastSensorMesurementsDailyAggregation(@Param('sensor_id') sensor_id: string): Promise<object[]>{
+  async getLastSensorMesurementsDailyAggregation(@Param() params: GetLastMeasurementsAggregationParams): Promise<object[]>{
     const db = this.dbService.getDb();
     let lastMeasurement = await db.measurement.findFirst({
         where: {
-            sensor_id: sensor_id,
+            sensor_id: params.sensor_id,
         },
         orderBy: {
             created_at: "desc"
@@ -103,7 +104,7 @@ export class AppController {
     endDate.setHours(23);
     let measurements = await db.measurement.findMany({
         where: {
-            sensor_id: sensor_id,
+            sensor_id: params.sensor_id,
             created_at: {
                 gte: startDate,
                 lte: endDate
@@ -123,5 +124,5 @@ export class AppController {
         return timeDifference >= 5;
     });
     return filteredMeasurements;
-}
+  }
 }
