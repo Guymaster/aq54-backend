@@ -16,7 +16,7 @@ export class AppController {
   }
 
   @Get("/sensors")
-  async getAllSensors(): Promise<object[]> {
+  async getAllSensors(): Promise<SensorResponseDto[]> {
     const db = this.dbService.getDb();
     const sensors = await db.sensor.findMany({
         orderBy: {
@@ -27,7 +27,7 @@ export class AppController {
   }
 
   @Get("/sensors/:sensor_id")
-  async getSensorById(@Param() params: GetUniqueSensorParams): Promise<object>{
+  async getSensorById(@Param() params: GetUniqueSensorParams): Promise<SensorResponseDto>{
     const db = this.dbService.getDb();
     const sensor = await db.sensor.findUnique({
         where: {
@@ -41,14 +41,14 @@ export class AppController {
   }
 
   @Get("/sensors/:sensor_id/measurements")
-  async getSensorMesurementsByAggregation(@Param() params: GetMeasurementsAggregationParams, @Query() query: GetMeasurementsAggregationQuery): Promise<object[]>{
+  async getSensorMesurementsByAggregation(@Param() params: GetMeasurementsAggregationParams, @Query() query: GetMeasurementsAggregationQuery): Promise<MeasurementsAggregationResponseDto>{
     const db = this.dbService.getDb();
     const baseDate = new Date(query.base_date.toString());
     const aggrType = query.aggr_type;
-    let startDate = baseDate;
+    let startDate = new Date(baseDate.toISOString());
     startDate.setMinutes(0);
     startDate.setSeconds(0);
-    let endDate = baseDate;
+    let endDate = new Date(baseDate.toISOString());
     endDate.setMinutes(59);
     endDate.setSeconds(59);
     if(aggrType == AggregationTypes.DAILY){
@@ -67,20 +67,26 @@ export class AppController {
             created_at: "asc"
         }
     });
+    let lastDate: Date | null = null;
     const filteredMeasurements = measurements.filter((obj, index, array) => {
-        if (index === 0){
-            return true;
+        if (index === 0 || lastDate == null){
+          lastDate = obj.created_at;
+          return true;
         }
-        const prevDate = new Date(array[index - 1].created_at);
         const currentDate = new Date(obj.created_at);
-        const timeDifference = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60);
-        return timeDifference >= 5;
+        const timeDifference = (currentDate.getTime() - lastDate.getTime()) / (1000 * 60);
+        const isAllowed = timeDifference >= query.interval;
+        if(isAllowed){
+          lastDate = obj.created_at;
+        }
+        return isAllowed;
     });
     return filteredMeasurements;
   }
 
   @Get("/sensors/:sensor_id/measurements/last")
-  async getLastSensorMesurementsDailyAggregation(@Param() params: GetLastMeasurementsAggregationParams): Promise<object[]>{
+  async getLastSensorMesurementsDailyAggregation(@Param() params: GetLastMeasurementsAggregationParams): Promise<LastMeasurementAggregationResponseDto>{
+    const interval = 60;
     const db = this.dbService.getDb();
     let lastMeasurement = await db.measurement.findFirst({
         where: {
@@ -94,10 +100,10 @@ export class AppController {
         throw new CustomException(RefExceptions.RESOURCE_NOT_FOUND, StatusCodes.RESOURCE_NOT_FOUND, "This is no measurement yet");
     }
     const baseDate = lastMeasurement.created_at;
-    let startDate = baseDate;
+    let startDate = new Date(baseDate.toISOString());
     startDate.setMinutes(0);
     startDate.setSeconds(0);
-    let endDate = baseDate;
+    let endDate = new Date(baseDate.toISOString());
     endDate.setMinutes(59);
     endDate.setSeconds(59);
     startDate.setHours(0);
@@ -123,6 +129,45 @@ export class AppController {
         const timeDifference = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60);
         return timeDifference >= 5;
     });
-    return filteredMeasurements;
+    return {
+      interval: interval,
+      results: filteredMeasurements,
+      base_date: baseDate,
+      aggr_type: AggregationTypes.DAILY
+    };
   }
 }
+
+type MeasurementsAggregationResponseDto = {
+  id: number,
+  sensor_id: string,
+  latitude: number,
+  longitude: number,
+  co: number,
+  co2: number,
+  no2: number,
+  o3: number,
+  pm10: number,
+  pm25: number,
+  rh: number,
+  extT: number,
+  intT: number,
+  voc: number,
+  created_at: Date,
+  updated_at: Date
+}[];
+
+type SensorResponseDto = {
+  id: string,
+  latitude: number,
+  longitude: number,
+  created_at: Date,
+  updated_at: Date
+};
+
+type LastMeasurementAggregationResponseDto = {
+  interval: number,
+  results: MeasurementsAggregationResponseDto,
+  base_date: Date,
+  aggr_type: AggregationTypes
+};
