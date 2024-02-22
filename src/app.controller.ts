@@ -72,6 +72,7 @@ export class AppController {
             id: "asc"
         }
     });
+    await db.$disconnect();
     return sensors;
   }
 
@@ -96,8 +97,10 @@ export class AppController {
         }
     });
     if(!sensor){
+      await db.$disconnect();
         throw new CustomException(RefExceptions.RESOURCE_NOT_FOUND, StatusCodes.RESOURCE_NOT_FOUND, "This sensor doesn't exist");
     }
+    await db.$disconnect();
     return sensor;
   }
 
@@ -144,9 +147,10 @@ export class AppController {
         }
     });
     let lastDate: Date | null = null;
-    const filteredMeasurements = measurements.filter((obj, index, array) => {
+    const filteredMeasurements = measurements.filter(async (obj, index, array) => {
         if (index === 0 || lastDate == null){
           lastDate = obj.created_at;
+          await db.$disconnect();
           return true;
         }
         const currentDate = new Date(obj.created_at);
@@ -155,8 +159,10 @@ export class AppController {
         if(isAllowed){
           lastDate = obj.created_at;
         }
+        await db.$disconnect();
         return isAllowed;
     });
+    await db.$disconnect();
     return filteredMeasurements;
   }
 
@@ -203,6 +209,7 @@ export class AppController {
         }
     });
     if(!lastMeasurement){
+        await db.$disconnect();
         throw new CustomException(RefExceptions.RESOURCE_NOT_FOUND, StatusCodes.RESOURCE_NOT_FOUND, "This is no measurement yet");
     }
     const baseDate = lastMeasurement.created_at;
@@ -235,6 +242,7 @@ export class AppController {
         const timeDifference = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60);
         return timeDifference >= 5;
     });
+    await db.$disconnect();
     return {
       interval: interval,
       results: filteredMeasurements,
