@@ -12,6 +12,7 @@ async function bootstrap() {
     .setDescription('Sensor measurements history')
     .setVersion('1.0.0')
     .addTag('sensors')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);

@@ -9,15 +9,18 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export default class AuthService {
-    private static _app: App;
+    constructor(){
+        this.init();
+    }
+    private _app: App;
 
-    static init(): void {
+    init(): void {
         this._app = initializeApp({
             credential: credential.cert(AuthConfig)
         });
     };
 
-    static async verifyToken(token: string): Promise<{
+    async verifyToken(token: string): Promise<{
         aud: string,
         auth_time: number,
         email_verified?: boolean,

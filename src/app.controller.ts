@@ -1,11 +1,12 @@
 import { Controller, Get, Param, Query, Req } from '@nestjs/common';
 import { AppService } from './app.service';
 import { DbService } from './db.service';
-import { Request, Response } from '@nestjs/common';
+import { Request, Response, UseGuards } from '@nestjs/common';
 import { CustomException } from './common/exceptions';
 import { AggregationTypes, RefExceptions, StatusCodes } from './common/values';
 import { GetLastMeasurementsAggregationParams, GetMeasurementsAggregationParams, GetMeasurementsAggregationQuery, GetUniqueSensorParams } from './common/validation';
-import { ApiExtraModels, ApiProperty, ApiResponse, getSchemaPath } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiExtraModels, ApiProperty, ApiResponse, getSchemaPath } from '@nestjs/swagger';
+import { AuthGuard } from './auth.guard';
 
 class MeasurementResponseDto {
   @ApiProperty() id: number;
@@ -50,6 +51,8 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiExtraModels(SensorResponseDto)
   @Get("/sensors")
   @ApiResponse({ 
@@ -76,6 +79,8 @@ export class AppController {
     return sensors;
   }
 
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiExtraModels(SensorResponseDto)
   @Get("/sensors/:sensor_id")
   @ApiResponse({ 
@@ -104,6 +109,8 @@ export class AppController {
     return sensor;
   }
 
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiExtraModels(MeasurementResponseDto)
   @Get("/sensors/:sensor_id/measurements")
   @ApiResponse({ 
@@ -166,6 +173,8 @@ export class AppController {
     return filteredMeasurements;
   }
 
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiExtraModels(LastMeasurementAggregationResponseDto)
   @ApiExtraModels(MeasurementResponseDto)
   @Get("/sensors/:sensor_id/measurements/last")
