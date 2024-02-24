@@ -3,9 +3,10 @@ FROM node:alpine
 WORKDIR /usr/src/app
 
 COPY package*.json ./
+COPY schema.prisma ./
 
 RUN npm install
-RUN npm run prisma-generate
+RUN npx prisma generate
 
 COPY . .
 
