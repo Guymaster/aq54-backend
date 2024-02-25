@@ -164,7 +164,6 @@ export class AppController {
         const currentDate = new Date(obj.created_at);
         const timeDifference = (currentDate.getTime() - lastDate.getTime()) / (1000 * 60);
         const isAllowed = timeDifference >= query.interval;
-        console.log(timeDifference, isAllowed)
         if(isAllowed){
           lastDate = obj.created_at;
           filteredMeasurements.push(obj);
@@ -258,7 +257,6 @@ export class AppController {
         const currentDate = new Date(obj.created_at);
         const timeDifference = (currentDate.getTime() - lastDate.getTime()) / (1000 * 60);
         const isAllowed = timeDifference >= interval;
-        console.log(timeDifference, isAllowed)
         if(isAllowed){
           lastDate = obj.created_at;
           filteredMeasurements.push(obj);
