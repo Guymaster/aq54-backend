@@ -154,7 +154,8 @@ export class AppController {
         }
     });
     let lastDate: Date | null = null;
-    const filteredMeasurements = measurements.filter(async (obj, index, array) => {
+    let filteredMeasurements = [];
+    measurements.filter(async (obj, index, array) => {
         if (index === 0 || lastDate == null){
           lastDate = obj.created_at;
           await db.$disconnect();
@@ -163,8 +164,10 @@ export class AppController {
         const currentDate = new Date(obj.created_at);
         const timeDifference = (currentDate.getTime() - lastDate.getTime()) / (1000 * 60);
         const isAllowed = timeDifference >= query.interval;
+        console.log(timeDifference, isAllowed)
         if(isAllowed){
           lastDate = obj.created_at;
+          filteredMeasurements.push(obj);
         }
         await db.$disconnect();
         return isAllowed;
@@ -223,13 +226,15 @@ export class AppController {
     }
     const baseDate = lastMeasurement.created_at;
     let startDate = new Date(baseDate.toISOString());
+    startDate.setHours(0);
     startDate.setMinutes(0);
     startDate.setSeconds(0);
+    startDate.setMilliseconds(0);
     let endDate = new Date(baseDate.toISOString());
     endDate.setMinutes(59);
     endDate.setSeconds(59);
-    startDate.setHours(0);
     endDate.setHours(23);
+    endDate.setMilliseconds(59);
     let measurements = await db.measurement.findMany({
         where: {
             sensor_id: params.sensor_id,
@@ -242,14 +247,23 @@ export class AppController {
             created_at: "asc"
         }
     });
-    const filteredMeasurements = measurements.filter((obj, index, array) => {
-        if (index === 0){
-            return true;
+    let lastDate: Date | null = null;
+    let filteredMeasurements = [];
+    measurements.filter(async (obj, index, array) => {
+        if (index === 0 || lastDate == null){
+          lastDate = obj.created_at;
+          await db.$disconnect();
+          return true;
         }
-        const prevDate = new Date(array[index - 1].created_at);
         const currentDate = new Date(obj.created_at);
-        const timeDifference = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60);
-        return timeDifference >= 5;
+        const timeDifference = (currentDate.getTime() - lastDate.getTime()) / (1000 * 60);
+        const isAllowed = timeDifference >= interval;
+        console.log(timeDifference, isAllowed)
+        if(isAllowed){
+          lastDate = obj.created_at;
+          filteredMeasurements.push(obj);
+        }
+        return isAllowed;
     });
     await db.$disconnect();
     return {
