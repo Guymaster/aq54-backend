@@ -1,73 +1,80 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# AQ54 Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Serveur mettant à disposition une API Restful permettant de récupérer et de trier l'historique des mesures effectuées par les capteurs SMART188 et SMART199. Réalisé avec NestJS.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Comment exécuter ?
 
-## Description
+Ce serveur est censée communiquer avec d'autres services et donc il est préférable de passer par [ce repository](https://github.com/Guymaster/aq54-start) qui simplifie la configuration et le lancement.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Si toutefois, vous voulez lancer uniquement cette application, vous pouvez suivre les étapes suivantes :
 
-## Installation
+Commencez par cloner ce dépot en ouvrant un terminal pour y entrer la ligne suivante :
 
-```bash
-$ npm install
+```
+git clone https://github.com/Guymaster/aq54-backend.git
 ```
 
-## Running the app
+Ouvrez le nouveau dossier **aq54** et créez-y un fichier environnement nommé `.env`. Vous devez y renseigner les variables d'environnement de la manière suivante :
 
-```bash
-# development
-$ npm run start
+```
+# API
+NODE_ENV=prod
+API_PORT=5000
+API_VERSION=1.0.0
 
-# watch mode
-$ npm run start:dev
+# DATABASE
+DB_URL=<Url de la base de données>
 
-# production mode
-$ npm run start:prod
+# FIREBASE
+FB_ACCOUNT_TYPE=<Type de compte Firebase>
+FB_PROJECT_ID=<ID projet Firebase>
+FB_PRIVATE_KEY_ID=<ID clé privée Firebase>
+FB_PRIVATE_KEY=<Clé privée Firebase>
+FB_CLIENT_EMAIL=<Email client Firebase>
+FB_CLIENT_ID=<Id client Firebase>
+FB_AUTH_URI=<Auth uri Firebase>
+FB_TOKEN_URI=<Token uri Firebase>
+FB_AUTH_PROVIDER_X509=<Auth provider Firebase>
+FB_CLIENT_X509=<Client X509 Firebase>
+FB_UNIVERSE_DOMAIN=<Uniiverse domain Firebase>
 ```
 
-## Test
+Vous avez dû recevoir ces informations par mail. Si ce n'est pas cas, veuillez me contacter.
 
-```bash
-# unit tests
-$ npm run test
+Ouvrez un terminal dans le repertoire aq54 et installez les dépendances en entrant :
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```
+npm install
 ```
 
-## Support
+```
+npm run prisma-generate
+```
+```
+npm run prisma-migrate
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Dans le même terminal, suivez l'une des étapes suivantes pour lancer l'appication.
 
-## Stay in touch
+### Lancer en mode développement
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Entrez :
 
-## License
+```
+npm start
+```
 
-Nest is [MIT licensed](LICENSE).
+Accédez à la documentation Swagger via `localhost:5000/api-docs`
+### Lancer en mode production (avec Docker)
+
+Entrez successivement :
+
+```
+docker build -t aq54-backend .
+```
+
+```
+docker run --name aq54-backend -p 5000:5000  aq54-backend
+```
+
+Accédez à la documentation Swagger via `localhost:5000/api-docs`
