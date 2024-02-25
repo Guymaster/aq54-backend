@@ -41,6 +41,10 @@ FB_UNIVERSE_DOMAIN=<Uniiverse domain Firebase>
 
 Vous avez dû recevoir ces informations par mail. Si ce n'est pas cas, veuillez me contacter.
 
+Suivez l'une des étapes suivantes pour lancer l'appication.
+
+### Lancer en mode développement
+
 Ouvrez un terminal dans le repertoire aq54 et installez les dépendances en entrant :
 
 ```
@@ -54,11 +58,7 @@ npm run prisma-generate
 npm run prisma-migrate
 ```
 
-Dans le même terminal, suivez l'une des étapes suivantes pour lancer l'appication.
-
-### Lancer en mode développement
-
-Entrez :
+Enfin, entrez :
 
 ```
 npm start
